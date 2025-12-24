@@ -30,5 +30,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "../server/src"]
+  "include": ["src"],
+  "references": [{ "path": "../server" }]
 }

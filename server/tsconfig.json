@@ -10,8 +10,10 @@
     "outDir": "dist",
     "sourceMap": true,
     "jsx": "react",
-    "inlineSources": true
+    "inlineSources": true,
+    "composite": true,
+    "declaration": true
   },
-  "include": ["**/*.ts", "**/*.tsx"],
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["dist", "node_modules"]
 }

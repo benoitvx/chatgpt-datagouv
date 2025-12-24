@@ -1,118 +1,120 @@
-# ChatGPT Apps SDK Alpic Starter
+# ChatGPT App data.gouv.fr
 
-This repository is a minimal Typescript application demonstrating how to build an OpenAI Apps SDK compatible MCP server with widget rendering in ChatGPT.
+Application ChatGPT pour visualiser les donnees ouvertes de data.gouv.fr avec des widgets interactifs.
 
-![Demo](docs/demo.gif)
+## Widgets disponibles
 
-## Overview
+### Sprint 1 : IRVE (Bornes de recharge)
+- Carte interactive des bornes de recharge pour vehicules electriques
+- Recherche par ville avec rayon personnalisable
+- Clustering pour les zones denses
+- Popups avec details (nom, adresse, operateur, puissance)
 
-This project shows how to integrate a Typescript express application with the ChatGPT Apps SDK using the Model Context Protocol (MCP). It includes a working MCP server that exposes tools and resources that can be called from ChatGPT, with responses rendered natively in ChatGPT. It also includes MCP tools without UI widgets.
-
-## Getting Started
+## Developpement
 
 ### Prerequisites
 
-- Node.js 22+ (see `.nvmrc` for exact version)
-- pnpm (install with `npm install -g pnpm`)
-- Ngrok
+- Node.js 22+ (voir `.nvmrc`)
+- pnpm (`npm install -g pnpm`)
+- Ngrok (pour les tests locaux avec ChatGPT)
 
-### Local Development with Hot Module Replacement (HMR)
-
-This project uses Vite for React widget development with full HMR support, allowing you to see changes in real-time, directly within ChatGPT conversation, without restarting the server.
-
-#### 1. Clone and Install
+### Installation
 
 ```bash
-git clone <repository-url>
-cd apps-sdk-template
 pnpm install
 ```
 
-#### 2. Start the Development Server
-
-Run the development server from the root directory:
+### Developpement local
 
 ```bash
 pnpm dev
 ```
 
-This command starts an Express server on port 3000. This server packages:
+Le serveur demarre sur le port 3000 avec :
+- Endpoint MCP sur `/mcp`
+- Widgets React avec HMR
 
-- an MCP endpoint on `/mcp` - aka the ChatGPT App Backend
-- a React application on Vite HMR dev server - aka the ChatGPT App Frontend
+### Test avec ChatGPT
 
-#### 3. Expose Your Local Server
-
-In a separate terminal, expose your local server using ngrok:
-
+1. Exposer le serveur local avec ngrok :
 ```bash
 ngrok http 3000
 ```
 
-Copy the forwarding URL from ngrok output:
+2. Dans ChatGPT :
+   - Settings → Connectors → Developer mode (activer)
+   - Settings → Connectors → Create
+   - URL : `https://[votre-id].ngrok-free.app/mcp`
+
+3. Tester avec : `@data.gouv.fr bornes de recharge autour de Lyon`
+
+## Build et Production
 
 ```bash
-Forwarding     https://3785c5ddc4b6.ngrok-free.app -> http://localhost:3000
+# Build
+pnpm build
+
+# Demarrer en production
+pnpm start
 ```
 
-#### 4. Connect to ChatGPT
-
-- Enable **Settings → Connectors → Advanced → Developer mode** in the ChatGPT client
-- Navigate to **Settings → Connectors → Create**
-- Enter your ngrok URL with the `/mcp` path (e.g., `https://3785c5ddc4b6.ngrok-free.app/mcp`)
-- Click **Create**
-
-#### 5. Test Your Integration
-
-- Start a new conversation in ChatGPT
-- Select your newly created connector using **the + button → Your connector**
-- Try prompting the model (e.g., "Show me pikachu details")
-
-#### 6. Develop with HMR
-
-Now you can edit React components in `web` and see changes instantly:
-
-- Make changes to any component
-- Save the file
-- The widget will automatically update in ChatGPT without refreshing or reconnecting
-- The Express server and MCP server continue running without interruption
-
-**Note:** When you modify widget components, changes will be reflected immediately. If you modify MCP server code (in `src/`), you may need to reload your connector in **Settings → Connectors → [Your connector] → Reload**.
-
-## Widget Naming Convention
-
-**Important:** For a widget to work properly, the name of the endpoint in your MCP server must match the file name of the corresponding React component in `web/src/widgets/`.
-
-For example:
-
-- If you create a widget endpoint named `pokemon-card`, you must create a corresponding React component file at `web/src/widgets/pokemon-card.tsx`
-- The endpoint name and the widget file name (without the `.tsx` extension) must be identical
-
-This naming convention allows the system to automatically map widget requests to their corresponding React components.
-
-## Deploy to Production
-
-Use Alpic to deploy your OpenAI App to production.
-
-[![Deploy on Alpic](https://assets.alpic.ai/button.svg)](https://app.alpic.ai/new/clone?repositoryUrl=https%3A%2F%2Fgithub.com%2Falpic-ai%2Fapps-sdk-template)
-
-- In ChatGPT, navigate to **Settings → Connectors → Create** and add your MCP server URL (e.g., `https://your-app-name.alpic.live`)
-
-## Project Structure
+## Structure du projet
 
 ```
-.
+chatgpt-datagouv/
 ├── server/
-│   ├── app.ts          # OpenAI App extension class with widget API implementation
-│   ├── server.ts       # MCP server with tool/resource/prompt registration
-│   └── index.ts        # Express server definition
-└── web/
-    └── src/
-        └── widgets/    # React widget components (must match endpoint names)
+│   ├── src/
+│   │   ├── index.ts          # Point d'entree Express
+│   │   ├── server.ts         # McpServer avec widgets
+│   │   └── lib/
+│   │       ├── geo.ts        # Geocoding Nominatim
+│   │       └── irve.ts       # Client API IRVE
+│   └── package.json
+├── web/
+│   ├── src/
+│   │   ├── helpers.ts        # generateHelpers Skybridge
+│   │   └── widgets/
+│   │       └── irve.tsx      # Widget carte Leaflet
+│   └── package.json
+├── package.json
+└── SPECS.md
 ```
 
-## Resources
+## Deploiement
 
-- [Apps SDK Documentation](https://developers.openai.com/apps-sdk)
-- [Model Context Protocol Documentation](https://modelcontextprotocol.io/)
-- [Alpic Documentation](https://docs.alpic.ai/)
+### Railway (recommande pour POC)
+
+```bash
+npm install -g @railway/cli
+railway login
+railway init
+railway up
+```
+
+### Configuration ChatGPT (Production)
+
+1. ChatGPT → Settings → Apps & Connectors → Developer Mode
+2. Creer une app :
+   - Nom : `data.gouv.fr`
+   - URL : `https://[votre-url-railway]/mcp`
+   - Auth : None
+
+## Sources de donnees
+
+- [Base nationale IRVE](https://www.data.gouv.fr/fr/datasets/fichier-consolide-des-bornes-de-recharge-pour-vehicules-electriques/) - 200k+ bornes de recharge
+
+## Technologies
+
+- **Framework** : [Skybridge](https://www.skybridge.tech/)
+- **Runtime** : Node.js 22+
+- **Frontend** : React 19 + Vite
+- **Cartes** : Leaflet + react-leaflet + react-leaflet-cluster
+- **Styling** : Tailwind CSS v4
+
+## Licence
+
+MIT
+
+---
+
+Base sur le template [Alpic Apps SDK](https://github.com/alpic-ai/apps-sdk-template).

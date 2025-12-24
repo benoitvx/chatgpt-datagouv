@@ -1,8 +1,8 @@
 {
-  "name": "apps-sdk-template",
-  "version": "0.0.1",
+  "name": "chatgpt-datagouv",
+  "version": "1.0.0",
   "private": true,
-  "description": "Alpic MCP Server Template",
+  "description": "ChatGPT App data.gouv.fr - Visualisations des donnees ouvertes",
   "type": "module",
   "packageManager": "pnpm@10.18.3",
   "scripts": {

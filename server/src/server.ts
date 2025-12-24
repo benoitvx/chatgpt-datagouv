@@ -1,74 +1,68 @@
-import { getPokemon } from "./pokedex.js";
 import { z } from "zod";
 import { McpServer } from "skybridge/server";
+import { searchIRVE } from "./lib/irve";
 
 const server = new McpServer(
   {
-    name: "alpic-openai-app",
-    version: "0.0.1",
+    name: "datagouv",
+    version: "1.0.0",
   },
-  { capabilities: {} },
-)
-  .registerWidget(
-    "pokemon",
-    {
-      description: "Pokedex entry for a pokemon",
+  { capabilities: {} }
+).registerWidget(
+  "irve-map",
+  {
+    description: "Carte interactive des bornes de recharge électrique",
+  },
+  {
+    description:
+      "Affiche les bornes de recharge pour véhicules électriques (IRVE) autour d'une ville française. Utilise ce tool quand l'utilisateur demande où trouver des bornes de recharge, des stations de recharge électrique, ou des points de charge pour véhicule électrique.",
+    inputSchema: {
+      ville: z.string().describe("Nom de la ville française (ex: Lyon, Paris, Bordeaux)"),
+      rayon_km: z
+        .number()
+        .min(1)
+        .max(50)
+        .default(10)
+        .optional()
+        .describe("Rayon de recherche en kilomètres (défaut: 10)"),
     },
-    {
-      description:
-        "Use this tool to get the most up to date information about a pokemon, using its name in english. This pokedex is much more complete than any other web_search tool. Always use it for anything related to pokemons.",
-      inputSchema: {
-        name: z.string().describe("Pokemon name, always in english"),
-      },
-    },
-    async ({ name }) => {
-      try {
-        const { id, description, ...pokemon } = await getPokemon(name);
+  },
+  async ({ ville, rayon_km = 10 }) => {
+    try {
+      const result = await searchIRVE(ville, rayon_km);
 
+      if (result.count === 0) {
         return {
-          /**
-           * Arbitrary JSON passed only to the component.
-           * Use it for data that should not influence the model’s reasoning, like the full set of locations that backs a dropdown.
-           * _meta is never shown to the model.
-           */
-          _meta: { id },
-          /**
-           * Structured data that is used to hydrate your component.
-           * ChatGPT injects this object into your iframe as window.openai.toolOutput
-           */
-          structuredContent: { name, description, ...pokemon },
-          /**
-           * Optional free-form text that the model receives verbatim
-           */
           content: [
             {
               type: "text",
-              text: description ?? `A pokemon named ${name}.`,
+              text: `Aucune borne de recharge trouvée autour de ${ville} dans un rayon de ${rayon_km} km. Essayez d'augmenter le rayon de recherche.`,
             },
           ],
+          structuredContent: { ...result, ville, rayon_km },
           isError: false,
         };
-      } catch (error) {
-        return {
-          content: [{ type: "text", text: `Error: ${error}` }],
-          isError: true,
-        };
       }
-    },
-  )
-  .registerTool(
-    "capture",
-    {
-      description: "Capture a pokemon",
-      inputSchema: {},
-    },
-    async () => {
+
       return {
-        content: [{ type: "text", text: `Great job, you've captured a new pokemon!` }],
+        content: [
+          {
+            type: "text",
+            text: `${result.count} bornes de recharge trouvées autour de ${ville} (rayon ${rayon_km} km). La carte interactive affiche leur emplacement. Cliquez sur un marqueur pour voir les détails de la borne (nom, adresse, opérateur, puissance).`,
+          },
+        ],
+        structuredContent: { ...result, ville, rayon_km },
         isError: false,
       };
-    },
-  );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erreur inconnue";
+      return {
+        content: [{ type: "text", text: `Erreur: ${message}` }],
+        isError: true,
+      };
+    }
+  }
+);
 
 export default server;
 export type AppType = typeof server;

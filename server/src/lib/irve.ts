@@ -1,7 +1,7 @@
 /**
  * Client API for IRVE (Bornes de recharge) data from data.gouv.fr
  */
-import { geocodeVille } from "./geo.js";
+import { geocodeVille } from "./geo";
 
 const TABULAR_API = "https://tabular-api.data.gouv.fr/api";
 // Resource ID for the consolidated IRVE CSV (v2.3.1)

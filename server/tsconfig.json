@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "strict": true,
     "skipLibCheck": true,
@@ -10,9 +10,7 @@
     "outDir": "dist",
     "sourceMap": true,
     "jsx": "react",
-    "inlineSources": true,
-    "composite": true,
-    "declaration": true
+    "inlineSources": true
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["dist", "node_modules"]

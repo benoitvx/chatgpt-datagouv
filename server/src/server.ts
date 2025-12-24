@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { McpServer } from "skybridge/server";
-import { searchIRVE } from "./lib/irve.js";
+import { searchIRVE } from "./lib/irve";
 
 const server = new McpServer(
   {
